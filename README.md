@@ -1,2 +1,3 @@
 # mover
-Lua library implementation of semver (see https://semver.org/)
+
+Lua library for semantic versioning (see  https://semver.org/)
