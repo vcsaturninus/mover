@@ -25,7 +25,6 @@ users:
  * .tag_with_flavor()       -- tag with build flavor string -- see _Constants_
  * .tag_with_prerel()       -- tag with prerelease stage string -- see _Constants_
  * .tag_with_timestamp()    -- tag with UNIX epoch timestamp
- * .tag_with_build_number() -- tag with build number 
  * .bump_major()            -- bump major number
  * .bump_minor()            -- bump minor number
  * .bump_patch()            -- bump patch number
@@ -388,8 +387,13 @@ function semver.__tostring(self)
                                    self.build_number)
     end
 
-    if self.prerel then repr = repr .. "-" .. self.prerel end
-    if build_meta then repr = repr .. "+" .. build_meta end
+    local prerel = self.prerel
+    if prerel and self.prerel_number then 
+        prerel = string.format("%s.%s", prerel, self.prerel_number) 
+    end
+    if prerel then repr = string.format("%s-%s",repr,prerel) end
+    if build_meta then repr = string.format("%s+%s", repr, build_meta) end
+
     return repr
 end
 
@@ -486,6 +490,24 @@ function semver.__lt(self, b)
             return false
         end
     end
+    
+    -- check if the strings have perel.number; if a does not have it and b does,
+    -- then a is shorter b and therefore a < b; else, the reverse
+    local a = self
+    if not a.prerel_number and b.prerel_number then
+        return true
+    elseif a.prerel_number and not b.prerel_number then
+        return false
+    end
+
+    -- both have (or do not have) a self.prerel_number; compare numerically
+    if a.prerel_number and b.prerel_number then
+        if a.prerel_number < b.prerel_number then
+            return true
+        elseif a.prerel_number > b.prerel_number then
+            return false
+        end
+    end
 
     -- if we've reached here, then all tokens have been equal
     -- fall back  to comparing the number of tokens
@@ -534,6 +556,8 @@ function semver.bump_major(self, how_many)
     self.major = self.major + (how_many and how_many or 1)
     self.minor = 0
     self.patch = 0
+    self.prerel_number = nil -- do not show a prerelease tag number of 0
+    self.build_number = nil  -- do not show a build number of 0
 end
 
 --[[
@@ -543,6 +567,8 @@ end
 function semver.bump_minor(self, how_many)
     self.minor = self.minor + (how_many and how_many or 1)
     self.patch = 0
+    self.prerel_number = nil -- do not show a prerelease tag number of 0
+    self.build_number = nil  -- do not show a build number of 0
 end
 
 --[[
@@ -550,6 +576,8 @@ end
 --]]
 function semver.bump_patch(self, how_many)
     self.patch = self.patch + (how_many and how_many or 1)
+    self.prerel_number = nil -- do not show a prerelease tag number of 0
+    self.build_number = nil  -- do not show a build number of 0
 end
 
 --[[
@@ -562,12 +590,9 @@ end
 --]]
 function semver.bump_prerel(self, how_many)
     local prerel = self.prerel
-    assert(prerel, "Cannot bump unset release-stage tag")
-    local num = tonumber(prerel:match(".(%d+)"))
-    prerel = self.prerel:match("(%a+)")
-    
-    local how_many = how_many and how_many or 1
-    self.prerel = string.format("%s.%s", prerel, num and num+how_many or how_many)
+    assert(prerel, "Cannot bump unset prerelease tag") 
+    self.prerel_number = (self.prerel_number or 0) + (how_many or 1)
+    self.build_number = nil  -- do not show a build number of 0
 end
 
 --[[
@@ -578,6 +603,9 @@ end
          given 3.1.7+debug, :bump_build_number(7) will generate 3.1.7+debug.7
 --]]
 function semver.bump_build_number(self, how_many)
+    if how_many and type(how_many) ~= "number" then
+        error("invalid argument to bump_build_number() : '%s' - must be a number", number)
+    end
     self.build_number = (tonumber(self.build_number) or 0) + (how_many or 1)
 end
 
@@ -603,6 +631,7 @@ function semver.tag_with_prerel(self, tag)
     if not self.prerel or not M._validate(tostring(self)) then
         error(string.format("invalid prerelease tag '%s'", tag))
     end
+    self.prerel_number = nil
 end
 
 --[[
@@ -616,18 +645,6 @@ function semver.tag_with_flavor(self, flavor)
     local flav = flavor:match("^[%a]+$")
     assert(flav, string.format("invalid flavor tag : '%s'", flavor))
     self.flavor = flav
-end
-
---[[
-    Add number as a build number (part of the build metadata). 
-
-    NOTE: this overwrites any previous build_number tag!
---]]
-function semver.tag_with_build_number(self, number)
-    if not number or type(number) ~= "number" then
-        error("invalid argument to tag_with_build_number() : '%s' - must be a number", number)
-    end
-    self.build_number = number
 end
 
 --[[
@@ -657,6 +674,7 @@ function semver.untag(self, build_meta_only)
     
     if not build_meta_only then
         self.prerel = nil
+        self.prerel_number = nil
     end
 end
 

@@ -205,9 +205,11 @@ instance:tag_with_prerel("alpha")
 test_compare(instance, mover.semver("4.1.1-alpha"), 0)
 
 instance:bump_prerel()
+print(instance.prerel_number)
 test_compare(instance, mover.semver("4.1.1-alpha.1"), 0)
 
 instance:bump_prerel()
+print(instance.prerel_number)
 test_compare(instance, mover.semver("4.1.1-alpha.2"), 0)
 
 instance:bump_prerel(173)
@@ -224,12 +226,12 @@ instance:tag_with_flavor(mover.DEV)
 test_compare(instance, mover.semver("4.1.1-rc.7"), 0)
 
 
-instance:tag_with_build_number(711)
+instance:bump_build_number(711)
 instance:bump_build_number(4)
 instance:bump_major(3)
 instance:bump_minor(2)
 instance:bump_patch(33)
-test_compare(instance, mover.semver("7.2.33-rc.7+not.compared"), 0)
+test_compare(instance, mover.semver("7.2.33-rc+not.compared"), 0)
 
 instance:untag()
 test_compare(instance, mover.semver("7.2.33"), 0)
@@ -263,22 +265,26 @@ instance:untag(true)
 instance:tag_with_flavor(mover.DEV)
 test_equal(instance, "15.0.0-beta+dev", true)
 
-instance:tag_with_build_number(17)
+instance:bump_build_number(17)
 instance:bump_build_number(2)
 instance:bump_prerel(3)
-test_equal(instance, "15.0.0-beta.3+dev.19", true)
+test_equal(instance, "15.0.0-beta.3+dev", true)
 
 instance:tag_with("random_build_metadata.1.2-random")
 instance:tag_with_flavor(mover.TEST)
 instance:tag_with_prerel(mover.ALPHA)
-instance:tag_with_build_number(1)
+instance:bump_build_number(1)
 instance:bump_prerel(3)
 instance:bump_major()
 instance:bump_minor(3)
-test_equal(instance, "16.3.0-alpha.3+random_build_metadata.1.2-random-test.1", true)
+test_equal(instance, "16.3.0-alpha+random_build_metadata.1.2-random-test", true)
+
+instance:bump_prerel(7)
+instance:bump_build_number(17)
+test_equal(instance, "16.3.0-alpha.7+random_build_metadata.1.2-random-test.17", true)
 
 instance:untag(true)
-test_equal(instance, "16.3.0-alpha.3", true)
+test_equal(instance, "16.3.0-alpha.7", true)
 
 instance:untag()
 test_equal(instance, "16.3.0", true)
@@ -288,7 +294,10 @@ instance = mover.semver(1, 2, 2, 'rc.2', 'development')
 test_equal(instance, "1.2.2-rc.2+development", true)
 
 instance:bump_prerel()
-test_equal(instance, "1.2.2-rc.3+development", true)
+test_equal(instance, "1.2.2-rc.2.1+development", true)
+
+instance:bump_patch()
+test_equal(instance, "1.2.3-rc.2+development", true)
 
 print(string.format(
 [[========================================
