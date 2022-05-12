@@ -96,9 +96,9 @@ The following points bear keeping in mind:
 Various methods are provided that tag the semver object with various
 predefined strings. The user is highly encouraged to use these rather
 than initiate/configure the object with random arbitrary strings.
-Specifically, when the user instantiated from arbitrary strings
+Specifically, when the user instantiates from a (arbitrary) string
 representing prelease or build metadata, the semver object will _not_
-split the input into e.g. timestamp, build number, prerelease number,
+split/parse the input into e.g. timestamp, build number, prerelease number,
 flavor, and so on. On the other hand, using the available methods for
 tagging makes the semver object aware of these and this approach is
 therefore more flexible.
@@ -145,7 +145,7 @@ Additionally, there are two other components a user can employ:
    cannot exist by itself without it.
  * build number (added and incremented via `bump_build_number()`)
 
-These observer the remark made earlier: if any component to the left
+These also observe the remark made earlier: if any component to the left
 is incremented, everything to the right is set to 0.
 ```
     local s = mover.semver("3.2.17")
@@ -156,3 +156,11 @@ is incremented, everything to the right is set to 0.
     s:bump_build_number(11)         -- => '3.2.17-rc.4+11'
     s:bump_minor()                  -- => '3.3.17-rc'    -- a prerelease number of 0 is not shown either
 ```
+
+## Tests
+
+The tests are stored in `./tests` and can be run with `make tests`.
+
+## License
+
+This software is MIT-licensed; see `LICENSE` or run `make license`.
