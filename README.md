@@ -30,7 +30,7 @@ in mind, what follows is an overview of how the module may be used
 from a user's perspective.
 
 #### Require and Instantiation
-```
+```lua
     -- require this module
     local mover = require("mover")
 
@@ -54,7 +54,7 @@ from a user's perspective.
 
 Semantic versioning strings are pairwise comparable. You can compare
 two semver objects:
-```
+```lua
     local a, b = semver.mover("1.1.10-alpha"), semver("1.1.10-beta")
     print(a > b)  -- false
     print(a == b) -- false
@@ -75,7 +75,7 @@ The following points bear keeping in mind:
  * build metadata provided by the user at instantiation time will have
    any subsequent tags _concatenated with it_.
    For example:
-```
+```lua
     local semver = mover.semver(1,2,3,mover.RC, "some_build_metadata")
     semver:tag_with_build_number(31)
     print(semver) -- => '1.2.3-rc+some_build_metadata.31'
@@ -85,7 +85,7 @@ The following points bear keeping in mind:
    tag can be arbitrary (as long as it's valid), and can also contain 
    an arbitrary associated number that can be incremented.
    For example:
-```
+```lua
 `   local semver = mover.semver(1,2,3, "random_prerelease_tag") 
     print(semver)                         -- => '1.2.3-random_prerelease_tag'
     semver:bump_prerel()                  -- => '1.2.3-random_prerelease_tag.1'
@@ -131,7 +131,7 @@ to the right are set to 0.
 **NOTE** : If an argument is specified to any of the `bump` functions,
 the current version is incremented by the amount specified via the
 argument. Otherwise, 1 is implied.
-```
+```lua
     local s = mover.semver("3.2.17")
     s:bump_major()                   -- => '4.0.0'
     s:bump_major(3)                  -- => '7.0.0'
@@ -147,7 +147,7 @@ Additionally, there are two other components a user can employ:
 
 These also observe the remark made earlier: if any component to the left
 is incremented, everything to the right is set to 0.
-```
+```lua
     local s = mover.semver("3.2.17")
     s:tag_with_prerel(mover.RC)     -- => '3.2.17-rc'
     s:bump_prerel(3)                -- => '3.2.17-rc.3'
