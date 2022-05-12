@@ -1,10 +1,9 @@
 #!/usr/bin/lua5.3
 
-package.path = package.path .. ";../src/?.lua;"
 local mover = require("mover")
 
-local total_failed = 0
-local total_run = 0
+local total_run = 0     -- total number of tests run
+local total_failed = 0  -- total number of tests failed
 
 -- remove char from str if it's the last one in the string
 function striptrailing(str, char)
@@ -22,7 +21,7 @@ function serialize(t, space)
     function __serialize(t)
         for k,v in pairs(t) do
             if type(k) == "number" then
-                k = string.format("[%s]", k) -- necessary because 1="a" syntax would make the key a string!
+                k = string.format("[%s]", k)
             end
             res = res .. string.format("%s%s%s=", space,k,space)
 
@@ -50,7 +49,7 @@ end
 function test_valid(verstr, valid, expected)
     assert(verstr, "missing 'verstr' argument to 'test_valid()'")
     mover._say(string.format("[ ] validating '%s'", tostring(verstr)))
-    
+ 
     total_run = total_run + 1
 
     local res, t = mover._validate(verstr)
@@ -109,6 +108,24 @@ function test_compare(a, b, expected)
     end
 
 end
+
+-- b must be a semver string NOT semver instance
+function test_equal(a, b, expected)
+    mover._say(string.format("[ ] Checking for equality: '%s' and '%s'", tostring(a), tostring(b)))
+ 
+    total_run =  total_run + 1
+
+    local res = tostring(a) == b
+    if res == expected then
+        mover._say("\t\t--> OK (%s)", expected)
+    else
+        mover._say("\t\t\t|Expected %s, got %s", expected, res)
+        total_failed =  total_failed+1
+    end
+
+end
+
+
 
 --========================================================================================
 -- Test that semantic version strings are recognized as valid or invalid, as appropriate
@@ -217,8 +234,64 @@ test_compare(instance, mover.semver("7.2.33-rc.7+not.compared"), 0)
 instance:untag()
 test_compare(instance, mover.semver("7.2.33"), 0)
 
+--==============================================================================
+-- factor in build metadata as well: test that the whole
+-- stringified semver object matches what's expected
+--==============================================================================
+local instance = mover.semver(3,7,363,'beta','test')
+test_equal(instance, "3.7.363-beta+test", true)
+
+instance:bump_minor()
+test_equal(instance, "3.8.0-beta+test", true)
+
+instance:bump_patch(1)
+instance:bump_patch(3)
+instance:bump_patch(90)
+instance:bump_patch(1)
+test_equal(instance, "3.8.95-beta+test", true)
+
+instance:bump_major()
+test_equal(instance, "4.0.0-beta+test", true)
+
+instance:bump_major(11)
+test_equal(instance, "15.0.0-beta+test", true)
+
+instance:tag_with_flavor(mover.DEV)
+test_equal(instance, "15.0.0-beta+test-dev", true)
+
+instance:untag(true)
+instance:tag_with_flavor(mover.DEV)
+test_equal(instance, "15.0.0-beta+dev", true)
+
+instance:tag_with_build_number(17)
+instance:bump_build_number(2)
+instance:bump_prerel(3)
+test_equal(instance, "15.0.0-beta.3+dev.19", true)
+
+instance:tag_with("random_build_metadata.1.2-random")
+instance:tag_with_flavor(mover.TEST)
+instance:tag_with_prerel(mover.ALPHA)
+instance:tag_with_build_number(1)
+instance:bump_prerel(3)
+instance:bump_major()
+instance:bump_minor(3)
+test_equal(instance, "16.3.0-alpha.3+random_build_metadata.1.2-random-test.1", true)
+
+instance:untag(true)
+test_equal(instance, "16.3.0-alpha.3", true)
+
+instance:untag()
+test_equal(instance, "16.3.0", true)
+
+--------- test invalid combinations
+instance = mover.semver(1, 2, 2, 'rc.2', 'development')
+test_equal(instance, "1.2.2-rc.2+development", true)
+
+instance:bump_prerel()
+test_equal(instance, "1.2.2-rc.3+development", true)
+
 print(string.format(
 [[========================================
 :::: FAILED: %s of %s
 ==========================================]], total_failed, total_run))
-if failed then exit(11) end  -- exit with error code
+if total_failed > 1 then os.exit(11) end  -- exit with error code
