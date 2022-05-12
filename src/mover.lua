@@ -2,7 +2,7 @@
 
 --[[
 -----------------------------------------------------------
--- Lua semantic version library -- 
+-- Lua semantic versioning library -- 
 -- (c) 2022 saturninus <vcsaturninus@protonmail.com> --
 -----------------------------------------------------------
 
@@ -578,7 +578,7 @@ end
          given 3.1.7+debug, :bump_build_number(7) will generate 3.1.7+debug.7
 --]]
 function semver.bump_build_number(self, how_many)
-    self.build_number = tonumber(self.build_number) or 0 + (how_many or 1)
+    self.build_number = (tonumber(self.build_number) or 0) + (how_many or 1)
 end
 
 --[[
@@ -600,8 +600,8 @@ end
 --]]
 function semver.tag_with_prerel(self, tag)
     self.prerel = tag:match("^[%d%a%.%-]+$")
-    if not M._validate(tostring(self)) then
-        error("invalid prerelease tag '%s'", tag)
+    if not self.prerel or not M._validate(tostring(self)) then
+        error(string.format("invalid prerelease tag '%s'", tag))
     end
 end
 
