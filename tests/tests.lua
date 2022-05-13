@@ -5,47 +5,6 @@ local mover = require("mover")
 local total_run = 0     -- total number of tests run
 local total_failed = 0  -- total number of tests failed
 
--- remove char from str if it's the last one in the string
-function striptrailing(str, char)
-    if str and str:sub(-1,-1) == char then
-        return string.sub(str, 1, #str-1)
-    end
-    return str
-end
-
--- serialize table to string; no whitespace separation if !space
-function serialize(t, space)
-    local space = space and " " or ""
-    local res = "{"
-
-    function __serialize(t)
-        for k,v in pairs(t) do
-            if type(k) == "number" then
-                k = string.format("[%s]", k)
-            end
-            res = res .. string.format("%s%s%s=", space,k,space)
-
-            if type(v) == "table" then
-                res = res .. space .. "{"
-                __serialize(v)
-                res = res .. space .. "},"
-
-            else
-                if type(v) == "string" then
-                    v = string.format("\"%s\"", v)
-                end
-                res = res .. string.format("%s%s,", space, v)
-            end
-
-        end
-
-        res = striptrailing(res, ",")
-    end
-    __serialize(t)
-    res = res .. space .. "}"
-    return res
-end
-
 function test_valid(verstr, valid, expected)
     assert(verstr, "missing 'verstr' argument to 'test_valid()'")
     mover._say(string.format("[ ] validating '%s'", tostring(verstr)))
@@ -83,8 +42,7 @@ function test_valid(verstr, valid, expected)
         expected.patch ~= t.patch or
         expected.prerel ~= t.prerel or
         expected.build_meta ~= t.build_meta then
-    
-        print(string.format("expected %s , res = %s", serialize(expected, true), serialize(t, true)))
+
         mover._say(complaint)
         mover._say(comparand)
         total_failed =  total_failed+1
@@ -205,11 +163,9 @@ instance:tag_with_prerel("alpha")
 test_compare(instance, mover.semver("4.1.1-alpha"), 0)
 
 instance:bump_prerel()
-print(instance.prerel_number)
 test_compare(instance, mover.semver("4.1.1-alpha.1"), 0)
 
 instance:bump_prerel()
-print(instance.prerel_number)
 test_compare(instance, mover.semver("4.1.1-alpha.2"), 0)
 
 instance:bump_prerel(173)

@@ -86,7 +86,7 @@ The following points bear keeping in mind:
    an arbitrary associated number that can be incremented.
    For example:
 ```lua
-`   local semver = mover.semver(1,2,3, "random_prerelease_tag") 
+    local semver = mover.semver(1,2,3, "random_prerelease_tag") 
     print(semver)                         -- => '1.2.3-random_prerelease_tag'
     semver:bump_prerel()                  -- => '1.2.3-random_prerelease_tag.1'
     semver:tag_with_prerel(mover.ALPHA)   -- => '1.2.3-alpha'
