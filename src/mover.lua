@@ -51,9 +51,12 @@ users:
 
 local M = {}
 
-M._VERSION = 2
+M._VERSION = '1.0.0'
+
 M._DESCRIPTION = "Lua library implementation for semantic versioning."
 M._LICENSE = [[
+MIT License
+
 Copyright (c) 2022 saturninus <vcsaturninus@protonmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
